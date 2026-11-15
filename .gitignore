@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw dictionary downloads (regenerate with npm run dict:build)
+/data/raw

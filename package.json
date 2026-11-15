@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dict:build": "node scripts/build-dictionary.mts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.1",

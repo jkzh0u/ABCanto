@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ABCanto
 
-## Getting Started
+Find the Cantonese word, either from **what it means** (English → Cantonese) or from
+**how it sounds** (type it however you'd spell it: `m goi`, `lei ho`, `mo yeh`).
 
-First, run the development server:
+Next.js frontend, with a [Hono](https://hono.dev) API mounted at `/api`.
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+API:
+- `GET /api/search?q=lei%20ho&mode=sound`: `mode` is `sound` or `english`; characters work in either.
+- `GET /api/literal?sound=fay%20gay&meaning=flying%20machine`: `meaning` is required, `sound` is optional but makes results more precise.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How search works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Sound** ([src/server/dictionary/sound.ts](src/server/dictionary/sound.ts)): typed text is split into
+  syllables (spaces optional), and each chunk is matched to Jyutping syllables using tables of
+  common informal spellings ([jyutping.ts](src/server/dictionary/jyutping.ts)): n/l merger, dropped
+  "ng", `j`/`ch`/`ts` for z/c, `ee`/`oo`/`eung`, and so on. Candidate sequences are pruned
+  against the dictionary as they're built. Tones are optional (`nei5 hou2` works too).
+- **English** ([english.ts](src/server/dictionary/english.ts)): an inverted index over definitions, with
+  exact gloss matches ranked above partial ones.
+- **Literal** ([literal.ts](src/server/dictionary/literal.ts)): matches a word-by-word translation to
+  each character's own meaning, using the character's reading in that word. "flying machine" →
+  飛 fly + 機 machine → 飛機. The Literal translation tab needs the meaning; adding how
+  it sounds re-ranks the results. English search also picks up literal matches.
+- **Ranking** ([data.ts](src/server/dictionary/data.ts)): match quality, then how common the word is in
+  spoken Cantonese (HKCanCor), with a boost for Cantonese-specific entries.
 
-## Learn More
+## Dictionary data
 
-To learn more about Next.js, take a look at the following resources:
+`data/dictionary.json.gz` is generated and committed. To rebuild it:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dict:build   # downloads sources into data/raw (gitignored), writes data/dictionary.json.gz
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`data/frequency.json` comes from HKCanCor. Regenerate it with `scripts/hkcancor-frequency.py`
+(needs `pip install pycantonese`), then rerun `dict:build`.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sources: [CC-Canto](https://cantonese.org) and [CC-CEDICT](https://cc-cedict.org) with
+Cantonese readings (CC BY-SA 3.0), and HKCanCor via [PyCantonese](https://pycantonese.org) (CC BY 4.0).

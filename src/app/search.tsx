@@ -59,13 +59,35 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
   },
 ];
 
-const inputClass = "field px-4";
+const inputClass = "field pl-4 pr-11";
+
+/** A small × inside a field that empties it and puts the cursor back. */
+function ClearButton({ visible, onClear, label }: { visible: boolean; onClear: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      aria-label={label}
+      title={label}
+      tabIndex={visible ? 0 : -1}
+      aria-hidden={!visible}
+      className={`absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[3px] text-ink-faint transition-[opacity,color] duration-150 hover:text-seal ${
+        visible ? "opacity-100" : "pointer-events-none opacity-0"
+      }`}
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+        <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
 
 export function Search() {
   const [tab, setTab] = useState<Tab>("sound");
   const [query, setQuery] = useState("");
   const [sound, setSound] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const soundRef = useRef<HTMLInputElement>(null);
   const q = query.trim();
   const s = sound.trim();
 
@@ -99,18 +121,31 @@ export function Search() {
             </div>
           </div>
         </div>
-        <input
-          ref={inputRef}
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={current.placeholder}
-          aria-label={tab === "literal" ? "Literally means" : "Search"}
-          autoCapitalize="off"
-          autoCorrect="off"
-          spellCheck={false}
-          className={`${inputClass} py-3 text-lg`}
-        />
+        <div className="relative">
+          <input
+            ref={inputRef}
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setQuery("");
+            }}
+            placeholder={current.placeholder}
+            aria-label={tab === "literal" ? "Literally means" : "Search"}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className={`${inputClass} py-3 text-lg`}
+          />
+          <ClearButton
+            visible={query !== ""}
+            label="Clear search"
+            onClear={() => {
+              setQuery("");
+              inputRef.current?.focus();
+            }}
+          />
+        </div>
         <p className="mt-2 text-sm text-ink-faint">
           <SwapText text={current.hint} />
         </p>
@@ -118,23 +153,38 @@ export function Search() {
         <div className="t-acc" data-open={tab === "literal"}>
           <div className="t-acc-panel">
             <div className="t-acc-panel-inner" inert={tab !== "literal"}>
-              <label className="flex flex-col gap-1.5 pt-3">
-                <span className="text-sm font-semibold text-ink-soft">
+              <div className="flex flex-col gap-1.5 pt-3">
+                <label htmlFor="sound-input" className="text-sm font-semibold text-ink-soft">
                   Sounds like <span className="font-normal text-ink-faint">(optional)</span>
-                </span>
-                <input
-                  value={sound}
-                  onChange={(e) => setSound(e.target.value)}
-                  placeholder="e.g. fay gay"
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  className={`${inputClass} py-2.5`}
-                />
+                </label>
+                <div className="relative">
+                  <input
+                    id="sound-input"
+                    ref={soundRef}
+                    value={sound}
+                    onChange={(e) => setSound(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setSound("");
+                    }}
+                    placeholder="e.g. fay gay"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className={`${inputClass} py-2.5`}
+                  />
+                  <ClearButton
+                    visible={sound !== ""}
+                    label="Clear sound"
+                    onClear={() => {
+                      setSound("");
+                      soundRef.current?.focus();
+                    }}
+                  />
+                </div>
                 <span className="text-sm text-ink-faint">
                   Adding how it sounds makes results much more accurate.
                 </span>
-              </label>
+              </div>
             </div>
           </div>
         </div>

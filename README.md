@@ -45,3 +45,13 @@ npm run dict:build   # downloads sources into data/raw (gitignored), writes data
 
 Sources: [CC-Canto](https://cantonese.org) and [CC-CEDICT](https://cc-cedict.org) with
 Cantonese readings (CC BY-SA 3.0), and HKCanCor via [PyCantonese](https://pycantonese.org) (CC BY 4.0).
+
+## Docker
+
+Every push to `main` (and every `v*` tag) builds a multi-arch image and publishes it to GitHub Container Registry via [.github/workflows/docker.yml](.github/workflows/docker.yml):
+
+```bash
+docker run -p 3000:3000 ghcr.io/jkzh0u/abcanto:latest
+```
+
+To build locally: `docker build -t abcanto . && docker run -p 3000:3000 abcanto`.

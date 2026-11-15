@@ -15,11 +15,11 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
     id: "sound",
     label: "How it sounds",
     hint: "Type it how it sounds in English letters. Spelling doesn't have to be perfect. You can also type characters.",
-    placeholder: "e.g. m goi, lei ho, mo yeh",
+    placeholder: "e.g. m goi, nei ho, mo yeh",
     examples: [
       { q: "m goi" },
       { q: "ngo" },
-      { q: "lei ho" },
+      { q: "nei ho" },
       { q: "mo yeh" },
       { q: "jo san" },
       { q: "chee seen" },

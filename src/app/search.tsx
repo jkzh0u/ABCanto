@@ -12,7 +12,7 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
   {
     id: "sound",
     label: "How it sounds",
-    hint: "Type it how it sounds in English letters — spelling doesn't have to be perfect. You can also type characters.",
+    hint: "Type it how it sounds in English letters. Spelling doesn't have to be perfect. You can also type characters.",
     placeholder: "e.g. m goi, lei ho, mo yeh",
     examples: [{ q: "m goi" }, { q: "lei ho" }, { q: "mo yeh" }, { q: "jo san" }, { q: "chee seen" }, { q: "sik ning mung" }],
     emptyHint: "Try spacing out the syllables, or a different spelling.",
@@ -28,7 +28,7 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
   {
     id: "literal",
     label: "Literal translation",
-    hint: "Type what the word literally means, word by word — like “flying machine” for 飛機 (airplane).",
+    hint: "Type what the word literally means, word by word, like “flying machine” for 飛機 (airplane).",
     placeholder: "e.g. flying machine, hot air",
     examples: [
       { q: "flying machine", sound: "fay gay" },

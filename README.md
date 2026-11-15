@@ -48,7 +48,7 @@ Cantonese readings (CC BY-SA 3.0), and HKCanCor via [PyCantonese](https://pycant
 
 ## Docker
 
-Every push to `main` (and every `v*` tag) builds a multi-arch image and publishes it to GitHub Container Registry via [.github/workflows/docker.yml](.github/workflows/docker.yml):
+Every push to `main` builds the image and publishes it to GitHub Container Registry (`:latest` plus a `:sha-<commit>` tag for rollbacks) via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). It needs a `GHCR_TOKEN` repo secret. The Portainer redeploy step is in there too, commented out for now:
 
 ```bash
 docker run -p 3000:3000 ghcr.io/jkzh0u/abcanto:latest

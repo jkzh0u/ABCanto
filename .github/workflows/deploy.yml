@@ -1,0 +1,102 @@
+name: Deploy Project
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      # ghcr.io only accepts lowercase image names, and this repo is jkzh0u/ABCanto
+      - name: Lowercase image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          # :latest is what the stack runs; the commit tag is kept for rollbacks
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Disabled until the image exists and the Portainer stack is set up.
+      #
+      # Same as "Update the stack" with "Re-pull image and redeploy" in Portainer, through its API
+      # (works on Community Edition; stack webhooks need Business Edition).
+      # Secrets: PORTAINER_URL (e.g. https://portainer.example.com, no trailing slash),
+      # PORTAINER_API_KEY (My account > Access tokens).
+      # Variable: PORTAINER_STACK_ID (the number in the stack's URL in Portainer).
+      # - name: Redeploy Portainer stack
+      #   env:
+      #     PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+      #     PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+      #     # a repository *variable*, not a secret: secrets are masked everywhere in the logs, and
+      #     # a short one like "8" garbles every 8 that appears (even inside the build summary)
+      #     STACK_ID: ${{ vars.PORTAINER_STACK_ID }}
+      #   run: |
+      #     set -euo pipefail
+      #     # On an HTTP error, print who answered (Portainer or a proxy such as Cloudflare) and why
+      #     api() {
+      #       local body headers status
+      #       body=$(mktemp); headers=$(mktemp)
+      #       status=$(curl -sS --retry 3 -o "$body" -D "$headers" -w '%{http_code}' \
+      #         -H "X-API-Key: $PORTAINER_API_KEY" "$@")
+      #       if [ "$status" -ge 400 ]; then
+      #         echo "::error::HTTP $status from ${*: -1}" >&2
+      #         grep -iE '^(server|cf-ray):' "$headers" >&2 || true
+      #         head -c 600 "$body" >&2; echo >&2
+      #         exit 1
+      #       fi
+      #       cat "$body"
+      #     }
+      #
+      #     stack=$(api "$PORTAINER_URL/api/stacks/$STACK_ID")
+      #     endpoint_id=$(jq -r '.EndpointId' <<<"$stack")
+      #     stack_env=$(jq -c '.Env // []' <<<"$stack")
+      #     compose=$(api "$PORTAINER_URL/api/stacks/$STACK_ID/file" | jq -r '.StackFileContent')
+      #
+      #     # resend the stack's current compose file and env unchanged, asking for a fresh pull
+      #     jq -n --arg file "$compose" --argjson env "$stack_env" \
+      #       '{stackFileContent: $file, env: $env, prune: false, pullImage: true}' \
+      #     | api -X PUT -H "Content-Type: application/json" --data @- \
+      #         "$PORTAINER_URL/api/stacks/$STACK_ID?endpointId=$endpoint_id" > /dev/null
+      #
+      #     echo "Stack $STACK_ID redeployed with a fresh pull of :latest"
+      #
+      #     # The previous :latest is now untagged (dangling) on the host. Prune dangling images only
+      #     # (Docker's default with no filters), so unused-but-tagged images of other stacks are kept.
+      #     # A failed cleanup only warns; the deploy itself already succeeded.
+      #     if pruned=$(api -X POST "$PORTAINER_URL/api/endpoints/$endpoint_id/docker/images/prune"); then
+      #       jq -r '"Pruned \((.ImagesDeleted // []) | length) image layers, reclaimed \(.SpaceReclaimed / 1048576 | floor) MB"' <<<"$pruned"
+      #     else
+      #       echo "::warning::Image prune failed; deploy is unaffected"
+      #     fi

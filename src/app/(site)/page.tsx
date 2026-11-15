@@ -1,5 +1,5 @@
-import { Seal } from "./_components/seal";
-import { Search } from "./search";
+import { Seal } from "../_components/seal";
+import { Search } from "../search";
 
 export default function Home() {
   return (

@@ -82,7 +82,15 @@ function ClearButton({ visible, onClear, label }: { visible: boolean; onClear: (
   );
 }
 
-export function Search() {
+export function Search({
+  autoFocus = true,
+  limit,
+}: {
+  /** Off in the embed, so loading it doesn't scroll the host page to the iframe. */
+  autoFocus?: boolean;
+  /** Max results; the API's default when unset. */
+  limit?: number;
+} = {}) {
   const [tab, setTab] = useState<Tab>("sound");
   const [query, setQuery] = useState("");
   const [sound, setSound] = useState("");
@@ -93,10 +101,11 @@ export function Search() {
 
   let request: SearchRequest | null = null;
   if (q) {
+    const max = limit ? { limit: String(limit) } : {};
     request =
       tab === "literal"
-        ? { endpoint: "literal", query: s ? { meaning: q, sound: s } : { meaning: q } }
-        : { endpoint: "search", query: { q, mode: tab } };
+        ? { endpoint: "literal", query: s ? { meaning: q, sound: s, ...max } : { meaning: q, ...max } }
+        : { endpoint: "search", query: { q, mode: tab, ...max } };
   }
   const { results, loading, error } = useLiveSearch(request);
   const current = TABS.find((t) => t.id === tab)!;
@@ -108,7 +117,7 @@ export function Search() {
         value={tab}
         onChange={(id) => {
           setTab(id);
-          inputRef.current?.focus();
+          inputRef.current?.focus({ preventScroll: true });
         }}
       />
 
@@ -124,7 +133,7 @@ export function Search() {
         <div className="relative">
           <input
             ref={inputRef}
-            autoFocus
+            autoFocus={autoFocus}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {

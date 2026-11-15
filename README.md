@@ -46,6 +46,21 @@ npm run dict:build   # downloads sources into data/raw (gitignored), writes data
 Sources: [CC-Canto](https://cantonese.org) and [CC-CEDICT](https://cc-cedict.org) with
 Cantonese readings (CC BY-SA 3.0), and HKCanCor via [PyCantonese](https://pycantonese.org) (CC BY 4.0).
 
+## Embed
+
+`/embed` is a compact version of the search for putting on another site:
+
+```html
+<iframe
+  src="https://YOUR-ABCANTO-HOST/embed"
+  title="ABCanto: find the Cantonese word"
+  loading="lazy"
+  style="width: 100%; max-width: 720px; height: 560px; border: 0; border-radius: 6px"
+></iframe>
+```
+
+Add `?theme=light` or `?theme=dark` to the URL to match the host page; otherwise it follows the system theme. It shows the top 5 results, doesn't grab focus on load, and links to the full site.
+
 ## Docker
 
 Every push to `main` builds the image and publishes it to GitHub Container Registry as `:latest` via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). It then redeploys the Portainer stack ([docker-compose.yml](docker-compose.yml)) with a fresh pull. That step needs the `PORTAINER_URL` and `PORTAINER_API_KEY` secrets and the `PORTAINER_STACK_ID` variable. To run the image yourself:

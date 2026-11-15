@@ -5,8 +5,8 @@ import { api } from "@/lib/api";
 import type { SearchMode, SearchResult } from "@/server/dictionary";
 
 export type SearchRequest =
-  | { endpoint: "search"; query: { q: string; mode: SearchMode } }
-  | { endpoint: "literal"; query: { meaning: string; sound?: string } };
+  | { endpoint: "search"; query: { q: string; mode: SearchMode; limit?: string } }
+  | { endpoint: "literal"; query: { meaning: string; sound?: string; limit?: string } };
 
 async function run(req: SearchRequest) {
   const res =

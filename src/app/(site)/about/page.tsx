@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Seal } from "../_components/seal";
+import { Seal } from "../../_components/seal";
 
 export const metadata: Metadata = {
   title: "About · ABCanto",

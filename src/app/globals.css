@@ -1,26 +1,218 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Paper theme: the whole page is a sheet of aged rice paper, with faint
+ * cursive calligraphy written across it, red annotations, and vermilion seals.
+ * Light by default; dark ("night") on request.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f8f3e6; /* rice paper */
+  --paper-deep: #efe7d4; /* tab bar, chips, character glosses */
+  --paper-light: #fffcf4; /* inputs, cards */
+  --ink: #1d1813;
+  --ink-soft: #4a4034;
+  --ink-faint: #7d705c;
+  --rule: rgb(70 48 24 / 0.16);
+  --rule-strong: rgb(70 48 24 / 0.3);
+  --seal: #b8322a;
+  --seal-soft: rgb(184 50 42 / 0.1);
+  --seal-blend: multiply;
+  --paper-grain: 0.05;
+  --paper-edge: rgb(110 70 25 / 0.12);
+  --verse-ink: rgb(29 24 19 / 0.06); /* the background calligraphy */
+  --verse-note: rgb(184 50 42 / 0.16); /* red annotations */
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #1f1a14;
+  --paper-deep: #2a241b;
+  --paper-light: #191510;
+  --ink: #ecdfc4;
+  --ink-soft: #cbbb9a;
+  --ink-faint: #9a8b70;
+  --rule: rgb(236 223 196 / 0.14);
+  --rule-strong: rgb(236 223 196 / 0.26);
+  --seal: #c9483b;
+  --seal-soft: rgb(201 72 59 / 0.16);
+  --seal-blend: normal;
+  --paper-grain: 0.12;
+  --paper-edge: rgb(0 0 0 / 0.4);
+  --verse-ink: rgb(236 223 196 / 0.055);
+  --verse-note: rgb(201 72 59 / 0.22);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-paper-light: var(--paper-light);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-seal: var(--seal);
+  --color-seal-soft: var(--seal-soft);
+  --font-serif: var(--font-noto-serif-hk), "Songti TC", "PMingLiU", serif;
+  --font-sans: var(--font-noto-serif-hk), "Songti TC", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* The page itself is the paper: fibre noise, soft mottling, darker edges. */
+body {
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.24 0 0 0 0 0.1 0 0 0 0.45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.3 0 0 0 0 0.12 0 0 0 0.2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 45%, transparent 55%, var(--paper-edge) 100%);
+  /* the vignette stays put so the page edges always look aged */
+  background-attachment: scroll, scroll, fixed;
+  color: var(--ink);
+  font-family: var(--font-serif);
+}
+:root[data-theme="dark"] body {
+  background-image: radial-gradient(ellipse at 50% 45%, transparent 50%, var(--paper-edge) 100%);
+  background-attachment: fixed;
+}
+/* Fine grain over everything; strength tuned per theme. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--paper-grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.6' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--seal-soft);
+  color: var(--ink);
+}
+
+/* ── Background calligraphy ──────────────────────────────────────
+   Cursive (草書) poems written vertically, read right to left. Pinned to the
+   window (not the page) so the margins stay the same while results come and
+   go; otherwise every change in page height re-wraps the columns and moves
+   the seals. */
+.verse {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  /* Fade the calligraphy out behind the content column (max-w-3xl = 48rem) so it
+     lives in the margins and doesn't compete with what you're reading. */
+  --clear: 26rem; /* half the content width, plus a little air */
+  --fade: 10rem;
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(50% - var(--clear) - var(--fade)),
+    rgb(0 0 0 / 0.12) calc(50% - var(--clear)),
+    rgb(0 0 0 / 0.12) calc(50% + var(--clear)),
+    #000 calc(50% + var(--clear) + var(--fade)),
+    #000 100%
+  );
+}
+.verse-text {
+  height: 100%;
+  writing-mode: vertical-rl;
+  padding: 2.5rem 3vw 0;
+  font-family: var(--font-liu-jian-mao-cao), var(--font-lxgw-wenkai-tc), serif;
+  font-size: clamp(72px, 10.5vw, 150px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  color: var(--verse-ink);
+}
+/* Red annotations (批註) between the poems, in small regular script. */
+.verse-note {
+  font-family: var(--font-lxgw-wenkai-tc), var(--font-serif);
+  font-weight: 700;
+  font-size: 0.17em;
+  letter-spacing: 0.25em;
+  line-height: 1.6;
+  color: var(--verse-note);
+  padding-block: 0.6em 1.4em;
+}
+
+/* Page content sits above the calligraphy. */
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Stamped seals sit "in" the paper. */
+.seal {
+  mix-blend-mode: var(--seal-blend);
+  flex-shrink: 0;
+}
+
+/* Collectors' seals scattered over the paper, pinned with the calligraphy. */
+.collector-seal {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+@media (min-width: 900px) {
+  .collector-seal {
+    display: block;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+/* Vertical writing for decorative columns. */
+.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.25em;
 }
+
+/* Paper-like form fields. */
+.field {
+  width: 100%;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  background: var(--paper-light);
+  color: var(--ink);
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.field::placeholder {
+  color: var(--ink-faint);
+  opacity: 0.8;
+}
+.field:focus {
+  border-color: var(--ink-soft);
+  box-shadow: 0 0 0 3px var(--seal-soft);
+}
+
+/* Example chips look like small paper slips. */
+.chip {
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  background: var(--paper-light);
+  color: var(--ink-soft);
+  transition:
+    border-color 150ms ease,
+    color 150ms ease,
+    background-color 150ms ease;
+}
+.chip:hover {
+  border-color: var(--seal);
+  color: var(--seal);
+}
+
+/* A thin double rule, like the ruled borders on old printed pages. */
+.double-rule {
+  border: 0;
+  height: 4px;
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule);
+}
+

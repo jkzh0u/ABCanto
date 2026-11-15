@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Results } from "./_components/results";
+import { SlidingTabs } from "./_components/sliding-tabs";
+import { SwapText } from "./_components/swap-text";
 import { useLiveSearch, type SearchRequest } from "./_components/use-live-search";
 
 type Tab = "sound" | "english" | "literal";
@@ -14,7 +16,15 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
     label: "How it sounds",
     hint: "Type it how it sounds in English letters. Spelling doesn't have to be perfect. You can also type characters.",
     placeholder: "e.g. m goi, lei ho, mo yeh",
-    examples: [{ q: "m goi" }, { q: "lei ho" }, { q: "mo yeh" }, { q: "jo san" }, { q: "chee seen" }, { q: "sik ning mung" }],
+    examples: [
+      { q: "m goi" },
+      { q: "ngo" },
+      { q: "lei ho" },
+      { q: "mo yeh" },
+      { q: "jo san" },
+      { q: "chee seen" },
+      { q: "sik ning mung" },
+    ],
     emptyHint: "Try spacing out the syllables, or a different spelling.",
   },
   {
@@ -22,7 +32,14 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
     label: "What it means",
     hint: "Type the meaning in English to find the Cantonese word. You can also type characters.",
     placeholder: "e.g. thank you, delicious, crazy",
-    examples: [{ q: "thank you" }, { q: "delicious" }, { q: "crazy" }, { q: "nothing" }, { q: "sorry" }, { q: "good morning" }],
+    examples: [
+      { q: "thank you" },
+      { q: "delicious" },
+      { q: "crazy" },
+      { q: "nothing" },
+      { q: "sorry" },
+      { q: "good morning" },
+    ],
     emptyHint: "Try a simpler or different English word.",
   },
   {
@@ -42,8 +59,7 @@ const TABS: { id: Tab; label: string; hint: string; placeholder: string; example
   },
 ];
 
-const inputClass =
-  "w-full rounded-xl border border-zinc-300 bg-white px-4 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-400";
+const inputClass = "field px-4";
 
 export function Search() {
   const [tab, setTab] = useState<Tab>("sound");
@@ -65,31 +81,24 @@ export function Search() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div role="tablist" className="grid grid-cols-3 gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-900">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={tab === t.id}
-            onClick={() => {
-              setTab(t.id);
-              inputRef.current?.focus();
-            }}
-            className={`rounded-lg px-2 py-2 text-sm font-medium transition-colors ${
-              tab === t.id
-                ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
-                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <SlidingTabs
+        tabs={TABS}
+        value={tab}
+        onChange={(id) => {
+          setTab(id);
+          inputRef.current?.focus();
+        }}
+      />
 
-      <div className="flex flex-col gap-2">
-        {tab === "literal" && (
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Literally means</span>
-        )}
+      <div className="flex flex-col">
+        {/* Extra fields for the literal tab expand and collapse in place. */}
+        <div className="t-acc" data-open={tab === "literal"}>
+          <div className="t-acc-panel">
+            <div className="t-acc-panel-inner" inert={tab !== "literal"}>
+              <span className="block pb-2 text-sm font-semibold text-ink-soft">Literally means</span>
+            </div>
+          </div>
+        </div>
         <input
           ref={inputRef}
           autoFocus
@@ -102,27 +111,33 @@ export function Search() {
           spellCheck={false}
           className={`${inputClass} py-3 text-lg`}
         />
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">{current.hint}</p>
+        <p className="mt-2 text-sm text-ink-faint">
+          <SwapText text={current.hint} />
+        </p>
 
-        {tab === "literal" && (
-          <label className="mt-3 flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Sounds like <span className="font-normal text-zinc-400">(optional)</span>
-            </span>
-            <input
-              value={sound}
-              onChange={(e) => setSound(e.target.value)}
-              placeholder="e.g. fay gay"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              className={`${inputClass} py-2.5`}
-            />
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              Adding how it sounds makes results much more accurate.
-            </span>
-          </label>
-        )}
+        <div className="t-acc" data-open={tab === "literal"}>
+          <div className="t-acc-panel">
+            <div className="t-acc-panel-inner" inert={tab !== "literal"}>
+              <label className="flex flex-col gap-1.5 pt-3">
+                <span className="text-sm font-semibold text-ink-soft">
+                  Sounds like <span className="font-normal text-ink-faint">(optional)</span>
+                </span>
+                <input
+                  value={sound}
+                  onChange={(e) => setSound(e.target.value)}
+                  placeholder="e.g. fay gay"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  className={`${inputClass} py-2.5`}
+                />
+                <span className="text-sm text-ink-faint">
+                  Adding how it sounds makes results much more accurate.
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
 
       {!q && (
@@ -134,10 +149,10 @@ export function Search() {
                 setQuery(ex.q);
                 if (tab === "literal") setSound(ex.sound ?? "");
               }}
-              className="rounded-full border border-zinc-300 px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              className="chip px-3 py-1 text-sm"
             >
               {ex.q}
-              {ex.sound && <span className="text-zinc-400"> · {ex.sound}</span>}
+              {ex.sound && <span className="text-ink-faint"> · {ex.sound}</span>}
             </button>
           ))}
         </div>

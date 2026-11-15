@@ -37,7 +37,12 @@ export function SpeakButton({ text, label }: { text: string; label: string }) {
   const voiceURI = useCantoneseVoice();
   const [speaking, setSpeaking] = useState(false);
 
-  function speak() {
+  function toggle() {
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
     const voice = window.speechSynthesis.getVoices().find((v) => v.voiceURI === voiceURI);
     if (!voice) return;
     window.speechSynthesis.cancel();
@@ -55,33 +60,63 @@ export function SpeakButton({ text, label }: { text: string; label: string }) {
   return (
     <button
       type="button"
-      onClick={speak}
+      onClick={toggle}
       disabled={!available}
-      aria-label={available ? `Play ${label}` : "Audio unavailable"}
+      aria-label={available ? (speaking ? `Stop ${label}` : `Play ${label}`) : "Audio unavailable"}
       title={
         available
-          ? "Play in Cantonese"
+          ? speaking
+            ? "Stop"
+            : "Play in Cantonese"
           : "No Cantonese voice on this device. Add a Cantonese (Hong Kong) voice in your system's speech settings."
       }
-      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-full transition-colors ${
+      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-full border transition-colors ${
         available
           ? speaking
-            ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          : "cursor-not-allowed bg-zinc-50 text-zinc-300 dark:bg-zinc-950 dark:text-zinc-700"
+            ? "border-seal bg-seal text-paper-light"
+            : "border-rule-strong bg-paper-deep text-ink-soft hover:border-seal hover:text-seal"
+          : "cursor-not-allowed border-rule bg-transparent text-ink-faint/50"
       }`}
     >
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M11 5 6 9H2v6h4l5 4V5z" />
-        {available ? (
-          <>
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-          </>
-        ) : (
+      {available ? (
+        // Speaker ⇄ stop, cross-faded (transitions.dev "Icon swap").
+        <span className="t-icon-swap" data-state={speaking ? "b" : "a"} aria-hidden="true">
+          <span className="t-icon" data-icon="a">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 5 6 9H2v6h4l5 4V5z" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          </span>
+          <span className="t-icon" data-icon="b">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+              <rect x="7" y="7" width="10" height="10" rx="2" />
+            </svg>
+          </span>
+        </span>
+      ) : (
+        <svg
+          viewBox="0 0 24 24"
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M11 5 6 9H2v6h4l5 4V5z" />
           <path d="m22 9-6 6m0-6 6 6" />
-        )}
-      </svg>
+        </svg>
+      )}
     </button>
   );
 }

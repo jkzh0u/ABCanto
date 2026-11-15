@@ -48,7 +48,7 @@ Cantonese readings (CC BY-SA 3.0), and HKCanCor via [PyCantonese](https://pycant
 
 ## Docker
 
-Every push to `main` builds the image and publishes it to GitHub Container Registry as `:latest` via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). The Portainer redeploy step is in there too, commented out for now:
+Every push to `main` builds the image and publishes it to GitHub Container Registry as `:latest` via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). It then redeploys the Portainer stack ([docker-compose.yml](docker-compose.yml)) with a fresh pull. That step needs the `PORTAINER_URL` and `PORTAINER_API_KEY` secrets and the `PORTAINER_STACK_ID` variable. To run the image yourself:
 
 ```bash
 docker run -p 3000:3000 ghcr.io/jkzh0u/abcanto:latest

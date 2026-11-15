@@ -1,0 +1,9 @@
+# The Portainer stack for ABCanto. Paste this into Portainer (Stacks > Add stack > Web editor).
+# The GitHub Action pushes ghcr.io/jkzh0u/abcanto:latest on every push to main, then asks
+# Portainer to re-pull it and redeploy this stack.
+services:
+  abcanto:
+    image: ghcr.io/jkzh0u/abcanto:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"

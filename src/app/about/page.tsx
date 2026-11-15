@@ -24,8 +24,7 @@ export default function AboutPage() {
         <h2 className="text-xl font-bold text-ink">Why I built this</h2>
         <p>
           I grew up as an ABC in a Cantonese-speaking household. My parents are immigrants who don&apos;t speak a word
-          of English, so I&apos;ve been the family translator for as long as I can remember: letters, documents, forms,
-          and the occasional text message that needs a second look.
+          of English, so I&apos;ve been the family translator for as long as I can remember: letters, documents, forms, literaly everything that has English.
         </p>
         <p>
           Like a lot of ABCs, I can speak and understand Cantonese fluently, but reading and writing it is another
